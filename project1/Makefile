@@ -3,7 +3,7 @@ PYTHON = python2
 CFLAGS = -O3 -std=c++11
 LDFLAGS = -larmadillo
 
-.PHONY: clean
+.PHONY: clean plot
 
 tests.cc: tridiagonal.hh
 
@@ -16,5 +16,8 @@ tests: tests.cc
 data.json: tridiagonal runner.py
 	$(PYTHON) runner.py > data.json
 
+plot: data.json
+	$(PYTHON) plot.py
+
 clean:
-	rm tests tridiagonal data.json
+	rm -f tests tridiagonal data.json
