@@ -19,5 +19,8 @@ data.json: tridiagonal runner.py
 plot: data.json
 	$(PYTHON) plot.py
 
+errors: data.json
+	$(PYTHON) errors.py
+
 clean:
 	rm -f tests tridiagonal data.json
