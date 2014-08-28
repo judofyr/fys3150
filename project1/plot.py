@@ -12,7 +12,7 @@ for run in data:
         continue
 
     xs = linspace(0, 1, run['n'])
-    ys = [float(x) for x in run['values']]
+    ys = run['values']
     plot(xs, ys, label="N=%d" % run['n'])
 
 xs = linspace(0, 1, 10000)

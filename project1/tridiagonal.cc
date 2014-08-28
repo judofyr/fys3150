@@ -35,7 +35,10 @@ int main(int argc, char* argv[]) {
     v = (problem.*solver)();
   }).count();
 
-  std::cout << v;
+  for (auto y : v) {
+    std::cout << y << std::endl;
+  }
+
   std::cerr << "elapsed: " << time << " ns" << std::endl;
 }
 

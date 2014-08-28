@@ -6,7 +6,7 @@ def run(*args):
     sys.stderr.write("[*] Running: %s\n" % (" ".join(args)))
     child = subprocess.Popen(args, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     (stdout, stderr) = child.communicate()
-    values = stdout.splitlines()
+    values = [float(x) for x in stdout.splitlines()]
     elapsed_start = stderr.find("elapsed: ") + 9
     elapsed_stop = stderr.find(" ", elapsed_start)
     elapsed = int(stderr[elapsed_start:elapsed_stop])
