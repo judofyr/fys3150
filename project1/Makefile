@@ -29,4 +29,4 @@ test: build/tests
 	./build/tests
 
 clean:
-	rm -f build
+	rm -rf build
