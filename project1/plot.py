@@ -10,6 +10,8 @@ def exact(x):
 for run in data:
     if run['algorithm'] == 'LU':
         continue
+    if run['n'] > 1000:
+        continue
 
     xs = linspace(0, 1, run['n'])
     ys = run['values']
