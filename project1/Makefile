@@ -19,6 +19,9 @@ build/tests: tests.cc | build
 build/data.json: build/tridiagonal runner.py
 	$(PYTHON) runner.py > build/data.json
 
+build/perf.tex: build/data.json perf.py
+	$(PYTHON) perf.py > build/perf.tex
+
 plot: build/data.json
 	$(PYTHON) plot.py
 
