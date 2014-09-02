@@ -3,7 +3,7 @@ PYTHON = python2
 CFLAGS = -O3 -std=c++11
 LDFLAGS = -larmadillo
 
-.PHONY: clean plot
+.PHONY: clean plot errors test
 
 build:
 	mkdir -p build
@@ -24,6 +24,9 @@ plot: build/data.json
 
 errors: build/data.json
 	$(PYTHON) errors.py
+
+test: build/tests
+	./build/tests
 
 clean:
 	rm -f build
