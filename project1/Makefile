@@ -32,8 +32,6 @@ test: build/tests
 
 build/article.pdf: article.tex build/perf.tex | build
 	cd build; \
-		pdflatex ../article.tex && \
-		pdflatex ../article.tex && \
 		pdflatex ../article.tex
 
 article: build/article.pdf
