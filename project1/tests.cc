@@ -31,7 +31,7 @@ TEST_CASE("Tridiagonal poisson") {
 
       auto v = problem.solve();
       double x = 0;
-      for (int i = i; i < n; i++) {
+      for (int i = 0; i < n; i++) {
         REQUIRE(fabs(v[i] - exact(x)) < 0.1);
         x += h;
       }

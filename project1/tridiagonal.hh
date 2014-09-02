@@ -12,7 +12,7 @@ class TridiagonalProblem {
     doublef f;
 
     TridiagonalProblem(int n, double h, doublef f, arma::vec a, arma::vec b, arma::vec c)
-      : n(n), h(h), f(f), a(a), b(b), c(c) {
+      : n(n), h(h), a(a), b(b), c(c), f(f) {
     }
 
     arma::vec solve() {
