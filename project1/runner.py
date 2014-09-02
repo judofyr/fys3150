@@ -20,7 +20,7 @@ for alg in ["LU", "Tri"]:
         if alg == "LU" and i >= 5:
             continue
 
-        values, elapsed = run("./tridiagonal", alg, str(n))
+        values, elapsed = run("./build/tridiagonal", alg, str(n))
         data.append(
             {
                 'algorithm': alg,

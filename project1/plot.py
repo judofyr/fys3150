@@ -1,7 +1,7 @@
 from matplotlib.pylab import *
 import json
 
-with open("data.json") as f:
+with open("build/data.json") as f:
     data = json.loads(f.read())
 
 def exact(x):

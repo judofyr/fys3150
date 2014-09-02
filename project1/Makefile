@@ -5,22 +5,25 @@ LDFLAGS = -larmadillo
 
 .PHONY: clean plot
 
+build:
+	mkdir -p build
+
 tests.cc: tridiagonal.hh
 
-tridiagonal: tridiagonal.cc
-	$(CC) $(CFLAGS) $(LDFLAGS) tridiagonal.cc -o tridiagonal
+build/tridiagonal: tridiagonal.cc | build
+	$(CC) $(CFLAGS) $(LDFLAGS) tridiagonal.cc -o build/tridiagonal
 
-tests: tests.cc
-	$(CC) $(CFLAGS) $(LDFLAGS) tests.cc -o tests
+build/tests: tests.cc | build
+	$(CC) $(CFLAGS) $(LDFLAGS) tests.cc -o build/tests
 
-data.json: tridiagonal runner.py
-	$(PYTHON) runner.py > data.json
+build/data.json: build/tridiagonal runner.py
+	$(PYTHON) runner.py > build/data.json
 
-plot: data.json
+plot: build/data.json
 	$(PYTHON) plot.py
 
-errors: data.json
+errors: build/data.json
 	$(PYTHON) errors.py
 
 clean:
-	rm -f tests tridiagonal data.json
+	rm -f build
