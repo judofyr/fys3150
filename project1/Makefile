@@ -4,7 +4,7 @@ CFLAGS = -O3 -std=c++11 -Wall -pedantic
 LDFLAGS = -larmadillo
 DEPS = src/tridiagonal.hh
 
-.PHONY: clean plot errors test
+.PHONY: clean test
 
 build:
 	mkdir -p build
@@ -21,16 +21,18 @@ build/data.json: tools/runner.py build/tridiagonal
 build/perf.tex: tools/perf.py build/data.json
 	$(PYTHON) $< > $@
 
-plot: build/data.json
-	$(PYTHON) tools/plot.py
+build/values.png: tools/plot.py build/data.json
+	$(PYTHON) $<
 
-errors: build/data.json
-	$(PYTHON) tools/errors.py
+build/errors.png: tools/errors.py build/data.json
+	$(PYTHON) $<
 
 test: build/tests
 	./build/tests
 
-build/article.pdf: article.tex build/perf.tex | build
+TEX_DEPS = build/perf.tex build/values.png build/errors.png
+
+build/article.pdf: article.tex $(TEX_DEPS)
 	cd build; \
 		pdflatex ../article.tex
 

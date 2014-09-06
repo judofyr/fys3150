@@ -20,6 +20,6 @@ for run in data:
 xs = linspace(0, 1, 10000)
 plot(xs, exact(xs), label="Exact")
 legend()
-show()
+savefig("build/values.png")
 
 

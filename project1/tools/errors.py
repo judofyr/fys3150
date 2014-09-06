@@ -14,17 +14,11 @@ for run in data:
     xs = linspace(0, 1, run['n'])
     us = exact(xs)
     vs = run['values']
-    max_eps = float('-inf')
-    max_u = 0
-    for (u, v) in zip(us, vs):
-        if u == 0:
-            continue
-        eps = log10(abs((v - u)/u))
-        if eps > max_eps:
-            max_eps = eps
-            max_u = u
-    print "N=%d eps=%f at %f" % (run['n'], max_eps, max_u)
+    eps = log10(abs((vs-us)/us))
+    plot(xs, eps, label="N=%d" % run['n'])
 
+legend()
+savefig("build/errors.png")
 
 
 
