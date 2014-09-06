@@ -33,8 +33,7 @@ test: build/tests
 TEX_DEPS = build/perf.tex build/values.png build/errors.tex
 
 build/article.pdf: article.tex build.sh $(TEX_DEPS)
-	cd build; \
-		pdflatex ../article.tex
+	sh build.sh
 
 article: build/article.pdf
 
