@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 
 #include "catch.hh"
-#include "tridiagonal.hh"
+#include "../src/tridiagonal.hh"
 #include <cmath>
 #include <armadillo>
 
