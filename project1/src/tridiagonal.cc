@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
   }
 
   int n = atoi(argv[2]);
-  double h = 1.0 / n;
+  double h = 1.0 / (n-1);
   vec a(n); a.fill(-1);
   vec b(n); b.fill(2);
   vec c(n); c.fill(-1);
