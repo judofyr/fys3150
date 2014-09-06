@@ -24,15 +24,15 @@ build/perf.tex: tools/perf.py build/data.json
 build/values.png: tools/plot.py build/data.json
 	$(PYTHON) $<
 
-build/errors.png: tools/errors.py build/data.json
-	$(PYTHON) $<
+build/errors.tex: tools/errors.py build/data.json
+	$(PYTHON) $< > $@
 
 test: build/tests
 	./build/tests
 
-TEX_DEPS = build/perf.tex build/values.png build/errors.png
+TEX_DEPS = build/perf.tex build/values.png build/errors.tex
 
-build/article.pdf: article.tex $(TEX_DEPS)
+build/article.pdf: article.tex build.sh $(TEX_DEPS)
 	cd build; \
 		pdflatex ../article.tex
 

@@ -7,6 +7,8 @@ with open("build/data.json") as f:
 def exact(x):
     return 1 - (1 - exp(-10))*x - exp(-10*x)
 
+maxs = {}
+
 for run in data:
     if run['algorithm'] == 'LU':
         continue
@@ -14,11 +16,13 @@ for run in data:
     xs = linspace(0, 1, run['n'])
     us = exact(xs)
     vs = run['values']
-    eps = log10(abs((vs-us)/us))
+    eps = ma.log10(abs((vs-us)/us))
     plot(xs, eps, label="N=%d" % run['n'])
+    maxs[run['n']] = nanmax(eps)
 
 legend()
 savefig("build/errors.png")
 
-
+for n in sort(maxs.keys()):
+    print "%d & %s \\\\" % (n, maxs[n])
 
