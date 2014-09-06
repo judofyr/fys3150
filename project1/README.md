@@ -6,7 +6,7 @@ Source code for the first project in FYS3150.
 
 Dependencies:
 
-* C++11 compiler
+* C++11 compiler w/ Armadillo
 * Python 2 w/ matplotlib
 
 ```
