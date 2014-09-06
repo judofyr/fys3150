@@ -2,30 +2,30 @@ CC = g++
 PYTHON = python2
 CFLAGS = -O3 -std=c++11 -Wall -pedantic
 LDFLAGS = -larmadillo
-DEPS = tridiagonal.hh
+DEPS = src/tridiagonal.hh
 
 .PHONY: clean plot errors test
 
 build:
 	mkdir -p build
 
-build/tridiagonal: tridiagonal.cc $(DEPS) | build
-	$(CC) $(CFLAGS) $(LDFLAGS) tridiagonal.cc -o build/tridiagonal
+build/tridiagonal: src/tridiagonal.cc $(DEPS) | build
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
-build/tests: tests.cc $(DEPS) | build
-	$(CC) $(CFLAGS) $(LDFLAGS) tests.cc -o build/tests
+build/tests: test/tests.cc $(DEPS) | build
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
-build/data.json: build/tridiagonal runner.py
-	$(PYTHON) runner.py > build/data.json
+build/data.json: tools/runner.py build/tridiagonal
+	$(PYTHON) $< > $@
 
-build/perf.tex: build/data.json perf.py
-	$(PYTHON) perf.py > build/perf.tex
+build/perf.tex: tools/perf.py build/data.json
+	$(PYTHON) $< > $@
 
 plot: build/data.json
-	$(PYTHON) plot.py
+	$(PYTHON) tools/plot.py
 
 errors: build/data.json
-	$(PYTHON) errors.py
+	$(PYTHON) tools/errors.py
 
 test: build/tests
 	./build/tests

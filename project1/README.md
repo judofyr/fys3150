@@ -24,16 +24,16 @@ make article
 
 ### Main algorithm files
 
-* **tridiagonal.hh**: Class for solving tridiagonal problems.
-* **tridiagonal.cc**: Main function which solves a specific problem.
-* **runner.py**: Runs `./tridiagonal` for some specific Ns.
-* **tests.cc**: Test case for TridiagonalProblem.
+* **src/tridiagonal.hh**: Class for solving tridiagonal problems.
+* **src/tridiagonal.cc**: Main function which solves a specific problem.
+* **tools/runner.py**: Runs `./tridiagonal` for some specific Ns.
+* **test/tests.cc**: Test case for TridiagonalProblem.
 
 ### Data analysis programs
 
 All of these programs uses the output from `runner.py`.
 
-* **plot.py**: Plots the accuracy of the numerical solution.
-* **perf.py**: Outputs a LaTeX table of the performance of the solvers.
-* **errors.py**: Computes the errors of the numerical solution.
+* **tools/plot.py**: Plots the accuracy of the numerical solution.
+* **tools/perf.py**: Outputs a LaTeX table of the performance of the solvers.
+* **tools/errors.py**: Computes the errors of the numerical solution.
 
