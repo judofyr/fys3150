@@ -1,0 +1,250 @@
+\documentclass[a4paper]{article}
+\usepackage{verbatim}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{varioref}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{empheq}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{siunitx}
+
+\title{Project 1: Solving differential equations using tridiagonal matrices}
+\author{Magnus Holm}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+  In this project we want to solve the one-dimensional Poisson equation with
+  Dirichlet boundary conditions. We rewrite it to a linear set of equations,
+  and solve these equations numerically using two different algorithms. The first
+  algorithm is optimized for this specific problem, while the second algorithm
+  interprets the equations as a matrix equation and uses a standard matrix
+  solving algorithm.
+
+  After describing and implementing the algorithms we compare their accuracy
+  and performance.
+
+  Source code is available at \url{https://github.com/judofyr/fys3150}.
+\end{abstract}
+
+\section{Poissson equation}
+
+The general one-dimensional Poisson equation reads
+\begin{equation*}
+  -u''(x) = f(x).
+\end{equation*}
+In this project we will solve it with Dirichlet boundary conditions:
+\begin{equation*}
+  -u''(x) = f(x), \hspace{0.5cm}
+  x \in (0, 1), \hspace{0.5cm}
+  u(0) = u(1) = 0.
+\end{equation*}
+
+We define the discretized approximation  to $u$ as $v_i$  with 
+grid points $x_i=ih$   in the interval from $x_0=0$ to $x_{n+1}=1$.
+The step length or spacing is defined as $h=1/(n+1)$. 
+We have then the boundary conditions $v_0 = v_{n+1} = 0$.
+We  approximate the second
+derivative of $u$ with 
+\begin{equation*}
+   -\frac{v_{i+1}+v_{i-1}-2v_i}{h^2} = f_i  \hspace{0.5cm} \mathrm{for} \hspace{0.1cm} i=1,\dots, n,
+\end{equation*}
+where $f_i=f(x_i)$.
+
+We can extract the $v_k$ terms using vector multiplication
+\[
+  \begin{pmatrix}
+    -1 & 2 & -1
+  \end{pmatrix}
+  \begin{pmatrix}
+    v_{i-1} \\ v_i \\ v_{i+1}
+  \end{pmatrix}
+  =
+  h^2 f_i
+  \hspace{0.5cm}
+  \mathrm{for} \hspace{0.1cm} i=1,\dots, n
+\]
+and combine all of the equations into a single matrix equation
+\begin{equation}
+    \left(\begin{array}{cccccc}
+                           2& -1& 0 &\dots   & \dots &0 \\
+                           -1 & 2 & -1 &0 &\dots &\dots \\
+                           0 &-1 &2 & -1 & 0 & \dots \\
+                           \dots & \dots   & \dots &\dots   &\dots & \dots \\
+                           \dots &\dots   & 0 &-1 &2& -1 \\
+                           0&\dots    & \dots & 0  &-1 & 2 \\
+                      \end{array} \right)
+    \begin{pmatrix}
+      v_0 \\ v_1 \\ v_2 \\ \vdots \\ v_{n-1} \\ v_n
+    \end{pmatrix}
+    = \tilde{\bf b}
+  \label{eq:matrix-eq}
+\end{equation}
+where $\tilde{b}_i = h^2 f_i$.
+
+\section{Numerical solution using LU decomposition}
+
+The simplest, although not fastest, way to solve this matrix equation is
+using the well-known LU decomposition technique. The tridiagonal
+structure makes it possible to find a LU factorization without partial
+pivoting (i.e. on the form $A = LU$, not $PA = LU$). After
+decomposition, we can find the solution with a simple forward and
+backward substitution without using the Gaussion elimination process.
+
+In this project we've used Armadillo, a C++ matrix library that
+integrates with LAPACK, to perform the LU decomposition.
+
+\section{Numerical solution taking advantage of the tridiagonal
+structure}
+
+The tridiagonal matrix equation \vref{eq:matrix-eq} can be written as
+\begin{equation*}
+  a_i v_{i-1} + b_i v_i + c_i v_{i+1} = \tilde{b}_i,
+\end{equation*}
+for $i=1,\dots, n$. In order to see how we can solve this set of
+equation, we will write down two adjacent rows ($k$ and $k+1$) and
+assume that $v_{k-1}$ is zero:
+\begin{equation*}
+  \begin{array}{rlrlrlrll}
+    & &
+    b_k v_k & {}+{} &
+    c_k v_{k+1} &
+    & &
+    {}={} & \tilde{b}_k \\
+     & &
+     a_{k+1} v_k & {}+{} &
+     b_{k+1} v_{k+1} & {}+{} &
+     c_{k+1} v_{k+2} & {}={} & \tilde{b}_{k+1}
+  \end{array}
+\end{equation*}
+We now want to modify the $k+1$ equation such that the $a_{k+1}$ term
+vanishes. By induction we observe that this process completely
+eliminates one column of the equation.
+\begin{empheq}[box=\fbox]{equation*}
+  \begin{array}{llrlrlrll}
+     & &
+     a_{k+1} v_k & {}+{} &
+     b_{k+1} v_{k+1} & {}+{} &
+     c_{k+1} v_{k+2} & {}={} & \tilde{b}_{k+1}
+    \vspace{0.3cm} \\
+    -\left(\frac{a_{k+1}}{b_k}\right) * & &
+    b_k v_k & {}+{} &
+    c_k v_{k+1} &
+    & &
+    {}={} & \tilde{b}_k
+    \vspace{0.3cm}
+    \\
+    \hline \\
+    \Rightarrow &
+    \multicolumn{4}{r}{
+      \left(b_{k+1} - \frac{c_k a_{k+1}}{b_k}\right) v_{k+1}
+    }
+    & {}+{} &
+    c_{k+1} v_{k+2} &
+    {}={} &
+    \tilde{b}_{k+1} - \frac{\tilde{b}_k a_{k+1}}{b_k}
+  \end{array}
+\end{empheq}
+We denote the new set of coefficients for $bm_i$ and $\tilde{b}m_i$ ($m$
+for "modified"):
+\begin{align}
+  bm_{i+1} &= b_{i+1} - \frac{c_i a_{i+1}}{b_i} \\
+  \tilde{b}m_{i+1} &= \tilde{b}_{i+1} - \frac{\tilde{b}_i a_{i+1}}{b_i}
+\end{align}
+
+We now look at two new adjacent rows, but this time we require $v_{k+2}$
+to be zero.
+\begin{empheq}[box=\fbox]{equation*}
+  \begin{array}{rlrll}
+    bm_k v_k & {}+{} &
+    c_k v_{k+1} &
+    {}={} &
+    \tilde{b}m_k \\
+    & &
+    bm_{k+1} v_{k+1}
+    &
+     {}={} & \tilde{b}m_{k+1}
+  \end{array}
+\end{empheq}
+which can be reduced to:
+\begin{align}
+  v_i = \frac{\tilde{b}m_i - c_i v_{i+1}}{bm_i}
+\end{align}
+
+\section{Complexity analysis}
+
+Building the $bm$, $\tilde{b}m$ and $v$ vectors requires each 1 floating
+point multiplication and 1 floating division per row. The division in
+$bm$ and $\tilde{b}m$ is the same, so this only needs to be computed
+once. In total our tridiagonal solver needs $3n$ floating point
+multiplications and $2n$ floating point divisions to solve the problem.
+
+The time complexity of this algorithm is thus $O(n)$.
+
+LU decomposition has a time complexity of $O(M(n))$ where $M(n)$ is the
+complexity of matrix multiplication. The current state-of-the-art matrix
+multiplication algorithm for practical $n$'s is the Strassen algorithm
+with a time complexity of $O(n^{2.807355})$.
+
+\section{Accuracy}
+
+To assess the accuracy of the numerical solution we put it to test with
+a function where we know the exact solution:
+\begin{align}
+  f(x) &= 100e^{-10x} \\
+  u(x) &= 1-(1-e^{10})x-e^{-10x}
+\end{align}
+
+See figure \ref{fig:values} for a plot of the values for different $n$,
+figure \ref{fig:errors} for the relative errors on a log10-scale, and
+table \ref{table:max-errors} for the maximum errors for different $n$.
+
+\begin{table}
+  \centering
+  \begin{tabular}{r | l}
+    N & Maximum relative error \\
+    \hline
+    \input{errors.tex}
+  \end{tabular}
+  \caption{Maximum relative error of the numerical solution}
+  \label{table:max-errors}
+\end{table}
+
+\begin{figure}
+  \includegraphics[scale=0.6]{values.png}
+  \caption{The numerical and exact solution for different $n$'s}
+  \label{fig:values}
+\end{figure}
+
+\begin{figure}
+  \includegraphics[scale=0.6]{errors.png}
+  \caption{$log10$ of the relative error between the numerical solution
+  and the exact solution for different $n$'s}
+  \label{fig:errors}
+\end{figure}
+
+\section{Performance}
+
+To observe the performance differences between the two algorithms we
+used C++11's \texttt{std::chrono::high\_resolution\_clock} to measure
+the time on a nanosecond scale. Table \vref{table:perf} shows the
+results.
+
+\begin{table}
+  \centering
+  \begin{tabular}{r | l | l}
+    N & Tridiagonal algorithm & Standard LU-decomposition \\ \hline
+    \input{perf.tex}
+  \end{tabular}
+  \caption{Performance comparison of the two algorithms}
+  \label{table:perf}
+\end{table}
+
+\end{document}
+
