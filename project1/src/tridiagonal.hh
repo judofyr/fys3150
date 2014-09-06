@@ -61,7 +61,13 @@ class TridiagonalProblem {
         x += h;
       }
 
-      return arma::solve(A, bi);
+      arma::mat l, u, p;
+      arma::vec y;
+
+      arma::lu(l, u, p, A);
+      arma::solve(y, l, p*bi);
+
+      return arma::solve(u, y);
     }
 };
 

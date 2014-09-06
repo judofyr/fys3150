@@ -17,7 +17,7 @@ data = []
 for alg in ["LU", "Tri"]:
     for i in xrange(1, 7):
         n = 10**i
-        if alg == "LU" and i >= 5:
+        if alg == "LU" and i >= 4:
             continue
 
         values, elapsed = run("./build/tridiagonal", alg, str(n))
