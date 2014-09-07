@@ -1,10 +1,9 @@
 set -e
 pushd build
+
 pdflatex ../article.tex
 
-if grep -q "Rerun to" article.log ; then
-  pdflatex ../article.tex
-fi
+grep -q "Rerun to" article.log && pdflatex ../article.tex
 
 if grep -q "Rerun to" article.log ; then
   echo What, again?!
