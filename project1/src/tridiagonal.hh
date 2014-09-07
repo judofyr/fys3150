@@ -7,17 +7,19 @@ class TridiagonalProblem {
 
   public:
     int n;
+    double x0;
     double h;
     arma::vec a, b, c;
     doublef f;
 
-    TridiagonalProblem(int n, double h, doublef f, arma::vec a, arma::vec b, arma::vec c)
-      : n(n), h(h), a(a), b(b), c(c), f(f) {
+    TridiagonalProblem(int n, double x0, double h, doublef f, arma::vec a, arma::vec b, arma::vec c)
+      : n(n), x0(x0), h(h), a(a), b(b), c(c), f(f) {
     }
 
     arma::vec solve() {
       arma::vec v(n);
-      double x = 0;
+
+      double x = x0;
 
       arma::vec bm = b;
       arma::vec btwiddle(n);
@@ -49,7 +51,7 @@ class TridiagonalProblem {
 
     arma::vec solve_lu() {
       arma::vec bi(n);
-      double x = 0;
+      double x = x0;
       arma::mat A(n, n); A.zeros();
 
       for (int i = 0; i < n; i++) {
