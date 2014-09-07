@@ -13,9 +13,9 @@ for run in data:
     if run['algorithm'] == 'LU':
         continue
 
-    xs = linspace(0, 1, run['n']+2)
+    xs = linspace(0, 1, run['n']+2)[1:-1]
     us = exact(xs)
-    vs = run['values']
+    vs = run['values'][1:-1]
     eps = ma.log10(abs((vs-us)/us))
     plot(xs, eps, label="N=%d" % run['n'])
     maxs[run['n']] = nanmax(eps)
