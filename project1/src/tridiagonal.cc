@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
   vec b(n); b.fill(2);
   vec c(n); c.fill(-1);
 
-  auto f = [](double x) { return 100 * exp(-10*x); };
+  auto f = [h](double x) { return h * h * 100 * exp(-10*x); };
   auto problem = TridiagonalProblem(n, h, f, a, b, c);
   auto solver = &TridiagonalProblem::solve;
 

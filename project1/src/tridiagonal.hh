@@ -22,13 +22,13 @@ class TridiagonalProblem {
       arma::vec bm = b;
       arma::vec btwiddle(n);
 
-      btwiddle(0) = h*h*f(x);
+      btwiddle(0) = f(x);
 
       for (int i = 0; i < n-1; i++) {
         x += h;
         double ratio = a(i+1)/bm(i);
         bm(i+1) = bm(i+1) - ratio*c(i);
-        btwiddle(i+1) = h*h*f(x) - ratio*btwiddle(i);
+        btwiddle(i+1) = f(x) - ratio*btwiddle(i);
       }
 
       // At this point we have:
@@ -57,7 +57,7 @@ class TridiagonalProblem {
                      A(i, i)   = b(i);
         if (i < n-1) A(i, i+1) = c(i);
 
-        bi(i) = h*h*f(x);
+        bi(i) = f(x);
         x += h;
       }
 
