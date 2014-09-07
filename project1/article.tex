@@ -181,7 +181,7 @@ which can be reduced to:
 
 Building the $bm$, $\tilde{b}m$ and $v$ vectors requires each 1 floating
 point multiplication and 1 floating division per row. The division in
-$bm$ and $\tilde{b}m$ is the same, so this only needs to be computed
+$bm$ and $\tilde{b}m$ is the same so this only needs to be computed
 once. In total our tridiagonal solver needs $3n$ floating point
 multiplications and $2n$ floating point divisions to solve the problem.
 
@@ -205,38 +205,52 @@ See figure \ref{fig:values} for a plot of the values for different $n$,
 figure \ref{fig:errors} for the relative errors on a log10-scale, and
 table \ref{table:max-errors} for the maximum errors for different $n$.
 
-\begin{table}
-  \centering
-  \begin{tabular}{r | l}
-    N & Maximum relative error \\
-    \hline
-    \input{errors.tex}
-  \end{tabular}
-  \caption{Maximum relative error of the numerical solution}
-  \label{table:max-errors}
-\end{table}
-
-\begin{figure}
-  \includegraphics[scale=0.6]{values.png}
-  \caption{The numerical and exact solution for different $n$'s}
-  \label{fig:values}
-\end{figure}
-
-\begin{figure}
-  \includegraphics[scale=0.6]{errors.png}
-  \caption{$log10$ of the relative error between the numerical solution
-  and the exact solution for different $n$'s}
-  \label{fig:errors}
-\end{figure}
+After $n = 100$ we have achieved a maximum error less than $10^{-3}$,
+and after $n = 10000$ we don't seem to improve much more.  Figure
+\ref{fig:errors} shows that as $n$ increases we also see less consistent
+errors for different values of $x$. Although we have done no formal
+analysis of this effect, we suspect that this is caused by the
+inaccuracy of floating point numbers.
 
 \section{Performance}
 
 To observe the performance differences between the two algorithms we
 used C++11's \texttt{std::chrono::high\_resolution\_clock} to measure
 the time on a nanosecond scale. Table \vref{table:perf} shows the
-results.
+results. We were not able to run LU decomposition on a (non-sparse) $n =
+10^5$ matrix due to memory limitations.
 
-\begin{table}
+These results show that our optimized algorithm which takes advantage of
+the tridiagonal structure is, as expected, both faster and scales better
+than using LU decomposition.
+
+\section{Graphs and tables}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{r | l}
+    N & Maximum relative error \\
+    \hline
+    \input{errors.tex}
+  \end{tabular}
+  \caption{Maximum relative error of the numerical solution ($log_{10}$)}
+  \label{table:max-errors}
+\end{table}
+
+\begin{figure}[H]
+  \includegraphics[scale=0.6]{values.png}
+  \caption{The numerical and exact solution for different $n$'s}
+  \label{fig:values}
+\end{figure}
+
+\begin{figure}[H]
+  \includegraphics[scale=0.6]{errors.png}
+  \caption{$log_{10}$ of the relative error between the numerical solution
+  and the exact solution for different $n$'s}
+  \label{fig:errors}
+\end{figure}
+
+\begin{table}[H]
   \centering
   \begin{tabular}{r | l | l}
     N & Tridiagonal algorithm & Standard LU-decomposition \\ \hline
