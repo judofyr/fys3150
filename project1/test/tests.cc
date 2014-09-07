@@ -9,14 +9,14 @@ using namespace arma;
 
 TEST_CASE("Tridiagonal poisson") {
   int n = 100;
-  double h = 1.0 / (n-1);
+  double h = 1.0 / (n+1);
   vec a(n); a.fill(-1);
   vec b(n); b.fill(2);
   vec c(n); c.fill(-1);
 
   SECTION("f(x) = 100 * exp(-10*x)") {
     auto f = [h](double x) { return h * h * 100 * exp(-10*x); };
-    auto problem = TridiagonalProblem(n, h, f, a, b, c);
+    auto problem = TridiagonalProblem(n, h, h, f, a, b, c);
 
     SECTION("solve() and solve_lu() should return the same value") {
       auto v1 = problem.solve();

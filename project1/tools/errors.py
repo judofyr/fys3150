@@ -13,7 +13,7 @@ for run in data:
     if run['algorithm'] == 'LU':
         continue
 
-    xs = linspace(0, 1, run['n'])
+    xs = linspace(0, 1, run['n']+2)
     us = exact(xs)
     vs = run['values']
     eps = ma.log10(abs((vs-us)/us))

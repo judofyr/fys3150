@@ -13,7 +13,7 @@ for run in data:
     if run['n'] > 1000:
         continue
 
-    xs = linspace(0, 1, run['n'])
+    xs = linspace(0, 1, run['n']+2)
     ys = run['values']
     plot(xs, ys, label="N=%d" % run['n'])
 
