@@ -9,6 +9,9 @@ DEPS = src/jacobi.hh
 build:
 	mkdir -p build
 
+build/schrodinger: src/schrodinger.cc $(DEPS) | build
+	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
+
 build/tests: test/tests.cc $(DEPS) | build
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
