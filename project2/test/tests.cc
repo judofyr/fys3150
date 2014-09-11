@@ -11,6 +11,7 @@ using namespace arma;
 
 TEST_CASE("JacobiEigenvalue") {
   SECTION("A 2x2 matrix") {
+    int n = 2;
     mat A;
     A << 1 << 2 << endr
       << 2 << 4 << endr;
@@ -44,9 +45,20 @@ TEST_CASE("JacobiEigenvalue") {
       REQUIRE_EPS(0, lambda(0));
       REQUIRE_EPS(5, lambda(1));
     }
+
+    SECTION("solves it the same way as Arma") {
+      mat B = A; // the solver modifies it
+      int limit = 100;
+      auto lambda = solver.solve(1e-8, &limit);
+      auto armalambda = eig_sym(B);
+      for (int i = 0; i < n; i++) {
+        REQUIRE_EPS(armalambda(i), lambda(i));
+      }
+    }
   }
 
   SECTION("A 3x3 matrix") {
+    int n = 3;
     mat A;
     A << 1 << 2 << 3 << endr
       << 2 << 4 << 5 << endr
@@ -54,13 +66,25 @@ TEST_CASE("JacobiEigenvalue") {
 
     auto solver = JacobiEigenvalue(A);
 
-    int limit = 100;
-    auto lambda = solver.solve(1e-8, &limit);
+    SECTION("solves it to known values") {
+      int limit = 100;
+      auto lambda = solver.solve(1e-8, &limit);
 
-    REQUIRE(limit > 90);
-    REQUIRE_EPS(-0.5157, lambda(0));
-    REQUIRE_EPS(0.1709, lambda(1));
-    REQUIRE_EPS(11.3448, lambda(2));
+      REQUIRE(limit > 90);
+      REQUIRE_EPS(-0.5157, lambda(0));
+      REQUIRE_EPS(0.1709, lambda(1));
+      REQUIRE_EPS(11.3448, lambda(2));
+    }
+
+    SECTION("solves it the same way as Arma") {
+      mat B = A; // the solver modifies it
+      int limit = 100;
+      auto lambda = solver.solve(1e-8, &limit);
+      auto armalambda = eig_sym(B);
+      for (int i = 0; i < n; i++) {
+        REQUIRE_EPS(armalambda(i), lambda(i));
+      }
+    }
   }
 }
 
