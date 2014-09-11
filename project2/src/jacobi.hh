@@ -25,7 +25,6 @@ class JacobiEigenvalue {
     }
 
     double max_off(int *k, int *l) {
-      int c = 0, r = 0;
       double max = 0;
 
       for (int c = 1; c < n; c++) {
@@ -43,7 +42,7 @@ class JacobiEigenvalue {
     }
 
     void step_A(int k, int l, double c, double s) {
-      double a_kk, a_ll, a_ik, a_il, r_ik, r_il;
+      double a_kk, a_ll, a_ik, a_il; //, r_ik, r_il;
       a_kk = A(k, k);
       a_ll = A(l, l);
 
