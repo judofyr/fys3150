@@ -14,16 +14,13 @@ int main() {
 
   mat A; A.zeros(n, n);
 
-  auto diag = A.diag();
-  auto diag_upper = A.diag(+1);
-  auto diag_lower = A.diag(-1);
+  A.diag(+1).fill(-1/(h*h));
+  A.diag(-1).fill(-1/(h*h));
 
+  auto diag = A.diag();
   for (int i = 0; i < n; i++) {
     double rho = rho_min + (i+1)*h;
     diag(i) = 2/(h*h) + rho*rho;
-    if (i < n-1) {
-      diag_upper(i) = diag_lower(i) = -1/(h*h);
-    }
   }
 
   auto solver = JacobiEigenvalue(A);
