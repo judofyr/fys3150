@@ -74,9 +74,9 @@ class JacobiEigenvalue {
       double t;
 
       if (tau > 0) {
-        t = -tau + sqrt(1 + tau*tau);
+        t = 1/(tau + sqrt(1 + tau*tau));
       } else {
-        t = -tau - sqrt(1 + tau*tau);
+        t = -1/(-tau + sqrt(1 + tau*tau));
       }
 
       *c = 1/sqrt(1+t*t);
