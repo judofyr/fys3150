@@ -4,7 +4,9 @@ CFLAGS = -O3 -std=c++11 -Wall -pedantic
 LDFLAGS = -larmadillo
 DEPS = src/jacobi.hh
 
-.PHONY: clean test
+.PHONY: clean test all
+
+all: build/schrodinger
 
 build:
 	mkdir -p build
