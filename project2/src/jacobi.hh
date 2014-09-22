@@ -42,7 +42,7 @@ class JacobiEigenvalue {
     }
 
     void step_A(int k, int l, double c, double s) {
-      double a_kk, a_ll, a_ik, a_il; //, r_ik, r_il;
+      double a_kk, a_ll, a_ik, a_il, r_ik, r_il;
       a_kk = A(k, k);
       a_ll = A(l, l);
 
@@ -59,13 +59,10 @@ class JacobiEigenvalue {
           A(i, l) = A(l, i) = c*a_il + s*a_ik;
         }
 
-        /*
-        TODO: These eigenvectors doesn't seem to be correct?
         r_ik = R(i, k);
         r_il = R(i, l);
         R(i, k) = c*r_ik - s*r_il;
         R(i, l) = c*r_il + s*r_ik;
-        */
       }
     }
 

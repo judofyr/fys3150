@@ -8,6 +8,31 @@
 using namespace arma;
 
 #define REQUIRE_EPS(exp, act) REQUIRE(fabs((exp) - (act)) < 0.0001)
+#define NORM_VEC(v) { v = normalise(v); if (v(0) < 0) v *= -1; }
+
+// Test against armadillo
+void test_vs_arma(JacobiEigenvalue &solver) {
+  mat B = solver.A;
+  int n = solver.n;
+  int limit = 100;
+  auto lambda = solver.solve(1e-8, &limit);
+  vec armaval;
+  mat armavec;
+  eig_sym(armaval, armavec, B);
+
+  for (int i = 0; i < n; i++) {
+    REQUIRE_EPS(armaval(i), lambda(i));
+
+    vec v = solver.R.col(i);
+    NORM_VEC(v);
+    vec armav = armavec.col(i);
+    NORM_VEC(armav);
+
+    for (int j = 0; j < n; j++) {
+      REQUIRE_EPS(armav(j), v(j));
+    }
+  }
+}
 
 TEST_CASE("JacobiEigenvalue") {
   SECTION("A 2x2 matrix") {
@@ -44,16 +69,20 @@ TEST_CASE("JacobiEigenvalue") {
       REQUIRE(limit == 99); // one iteration
       REQUIRE_EPS(0, lambda(0));
       REQUIRE_EPS(5, lambda(1));
+
+      vec v1 = solver.R.col(0);
+      NORM_VEC(v1);
+      REQUIRE_EPS( 2/sqrt(5.0), v1(0));
+      REQUIRE_EPS(-1/sqrt(5.0), v1(1));
+
+      vec v2 = solver.R.col(1);
+      NORM_VEC(v2);
+      REQUIRE_EPS(1/sqrt(5.0), v2(0));
+      REQUIRE_EPS(2/sqrt(5.0), v2(1));
     }
 
     SECTION("solves it the same way as Arma") {
-      mat B = A; // the solver modifies it
-      int limit = 100;
-      auto lambda = solver.solve(1e-8, &limit);
-      auto armalambda = eig_sym(B);
-      for (int i = 0; i < n; i++) {
-        REQUIRE_EPS(armalambda(i), lambda(i));
-      }
+      test_vs_arma(solver);
     }
   }
 
@@ -77,13 +106,7 @@ TEST_CASE("JacobiEigenvalue") {
     }
 
     SECTION("solves it the same way as Arma") {
-      mat B = A; // the solver modifies it
-      int limit = 100;
-      auto lambda = solver.solve(1e-8, &limit);
-      auto armalambda = eig_sym(B);
-      for (int i = 0; i < n; i++) {
-        REQUIRE_EPS(armalambda(i), lambda(i));
-      }
+      test_vs_arma(solver);
     }
   }
 }
