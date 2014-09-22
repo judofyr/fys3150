@@ -8,7 +8,16 @@ using namespace arma;
 int main(int argc, char* argv[]) {
   if (argc < 4) {
     std::cout << "usage: " << argv[0]
-      << " n_step rho_max (val|vec) [w_r]" << std::endl;
+      << " n_step rho_max (val|vec) [w_r]" << std::endl
+      << std::endl
+      << "Parameters:" << std::endl
+      << "  n_step/rho_max/w_r: parameters as specified for the problem" << std::endl
+      << "  val:  prints the (sorted) list of eigenvalues" << std::endl
+      << "  vec:  prints the eigenvector for the lowest eigenvalue" << std::endl
+      << std::endl
+      << "When w_r is given, it will compute the wave function for two" << std::endl
+      << "electrons interecting via a repulsive Coulomb interaction." << std::endl
+      << "Otherwise it will compute the wave function for a single electron." << std::endl;
     return 1;
   }
 
