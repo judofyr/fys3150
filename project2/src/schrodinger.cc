@@ -3,15 +3,17 @@
 #include <algorithm>
 #include <cstdlib>
 #include <map>
+#include <chrono>
 
 using namespace arma;
 
 int main(int argc, char* argv[]) {
-  if (argc < 3) {
+  if (argc < 4) {
     std::cout << "usage: " << argv[0]
-      << " n_step rho_max [w_r]" << std::endl
+      << " [arma|jacobi] n_step rho_max [w_r]" << std::endl
       << std::endl
       << "Parameters:" << std::endl
+      << "  [arma|jacobi]:      what algorithm to use" << std::endl
       << "  n_step/rho_max/w_r: parameters as specified for the problem" << std::endl
       << std::endl
       << "When w_r is given, it will compute the wave function for two" << std::endl
@@ -21,9 +23,9 @@ int main(int argc, char* argv[]) {
   }
 
   double rho_min = 0;
-  int n_step = atoi(argv[1]);
-  double rho_max = atof(argv[2]);
-  float w_r = (argc < 4) ? -1 : atof(argv[3]);
+  int n_step = atoi(argv[2]);
+  double rho_max = atof(argv[3]);
+  float w_r = (argc < 5) ? -1 : atof(argv[4]);
 
   double h = (rho_max - rho_min)/n_step;
 
@@ -48,15 +50,26 @@ int main(int argc, char* argv[]) {
     diag(i) = 2/(h*h) + potential;
   }
 
-  auto solver = JacobiEigenvalue(A);
-  int limit = 1e8;
+  vec eigval;
+  mat eigvecs;
 
-  auto eigval = solver.solve(1e-8, &limit);
-  std::cerr << "iterations=" << (1e8 - limit) << std::endl;
+  auto t1 = std::chrono::high_resolution_clock::now();
+  if (argv[1][0] == 'a') {
+    eig_sym(eigval, eigvecs, A);
+  } else {
+    auto solver = JacobiEigenvalue(A);
+    int limit = 1e8;
+    eigval = solver.solve(1e-8, &limit);
+    eigvecs = solver.R;
+    std::cerr << "iterations=" << (1e8 - limit) << std::endl;
+  }
+  auto t2 = std::chrono::high_resolution_clock::now();
+  auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1);
+  std::cerr << "elapsed=" << elapsed.count() << std::endl;
 
   for (int i = 0; i < n; i++) {
     std::cout << eigval(i) << " ";
-    vec eigvec = solver.R.col(i);
+    vec eigvec = eigvecs.col(i);
     for (auto num : eigvec) {
       std::cout << num << " ";
     }
