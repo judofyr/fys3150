@@ -1,0 +1,524 @@
+\documentclass[a4paper]{revtex4}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{bbold}
+\usepackage{commath}
+\usepackage{varioref}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{empheq}
+\usepackage{siunitx}
+
+\begin{document}
+
+\newcommand{\se}{Schr\"{o}dinger}
+
+\title{\se's equation for two electrons in a three-dimensional harmonic oscillator well}
+\author{M. Holm}
+\noaffiliation
+
+\date{\today}
+
+\begin{abstract}
+  In this project we're looking at two electrons in a three-dimensional
+  harmonic oscillator with spherical symmetry. We rewrite \se's equation as a
+  matrix-eigenvalue problem and solve it using Jacobi's algorithm.
+
+  We find that Jacobi's algorithm is fast for small $n_\text{step}$, but
+  quickly degrades in performance compared with a more modern algorithm like
+  Householder's algorithm. Our problem required $n_\text{step} = 280$ at which
+  Jacobi's is over 100 times slower than Householder's.
+
+  All source code is available at \url{https://github.com/judofyr/fys3150}.
+\end{abstract}
+
+\maketitle
+
+\section{Theory}
+
+\subsection{Single electron}
+\label{seq:one}
+
+We are first interested in the solution of the radial part of \se's equation
+for one electron
+\begin{equation}
+  -\frac{\hbar^2}{2m}
+  \left(
+    \frac{1}{r^2}
+    \dod{}{r}
+    r^2
+    \dod{}{r}
+    -
+    \frac{l(l + 1)}{r^2}
+  \right)
+  R(r) + V(r)R(r)
+  = ER(r)
+\end{equation}
+In our case $V(r)$ is the the harmonic oscillator potential $(1/2)kr^2$ with
+$k = m\omega^2$ and $E$ is the energy of the harmonic oscillator in three
+dimensions. The oscillator frequency is $\omega$ and the energies are
+\begin{equation}
+  E_{nl} = \hbar\omega
+  \left(
+    2n + l + \frac{3}{2}
+  \right)
+\end{equation}
+with $n = 0, 1, 2, \dots$ and $l = 0, 1, 2, \dots$. From now on we will only
+consider the case where $l = 0$. We substitute $R(r) = (1/r) u(r)$ and obtain
+\begin{equation}
+  -\frac{\hbar^2}{2m}
+  \dod[2]{}{r}
+  u(r)
+  +
+  V(r)u(r)
+  =
+  Eu(r)
+\end{equation}
+We introduce a dimensionless variable $\rho = (1/\alpha)r$ where $\alpha$ is a
+constant with dimension length that we will fix later. After inserting the
+potential we get
+\begin{align}
+  \label{eq:one-pot}
+  -\frac{\hbar^2}{2m\alpha^2}
+  \dod[2]{}{\rho}
+  u(\rho)
+  +
+  \frac{1}{2}
+  k \alpha^2 \rho^2
+  u(\rho)
+  &=
+  Eu(\rho)\\
+  -\dod[2]{}{\rho}
+  u(\rho)
+  +
+  \frac{mk \alpha^4}{\hbar^2}
+  \rho^2
+  u(\rho)
+  & =
+  \frac{2m\alpha^2}{\hbar^2}
+  Eu(\rho)
+\end{align}
+By fixing $\frac{mk \alpha^4}{\hbar^4} = 1$ and defining $\lambda =
+\frac{2m\alpha^2}{mk}E$ we can rewrite \se's equation as
+\begin{equation} \label{eq:one}
+  -\dod[2]{}{\rho}
+  u(\rho)
+  + \rho^2 u(\rho)
+  =
+  \lambda u(\rho)
+\end{equation}
+with boundary conditions $u(0) = 0, u(\infty) = 0$.
+Equation (\ref{eq:one}) has a known analytic solution $\lambda = 3, 7, 11, \dots, 3n + 4$.
+
+We define the coefficient in front of $u(\rho)$ as the \emph{potential},
+$V_i$. In this case, $V_i = \rho^2$.
+
+\subsection{Two electrons}
+
+We will now study how two electrons interact in a harmonic oscillator. We
+start by looking at the \se's equation for two electrons without Coulomb
+interaction,
+\begin{equation}
+  \left(
+  -\frac{\hbar^2}{2m}
+  \dod[2]{}{r_1}
+  -\frac{\hbar^2}{2m}
+  \dod[2]{}{r_2}
+  + \frac{1}{2} k r_1^2
+  + \frac{1}{2} k r_2^2
+  \right)
+  u(r_1, r_2)
+  =
+  Eu(r_1, r_2)
+\end{equation}
+and introduce the relative coordinate $\mathbf{r} = \mathbf{r_1} -
+\mathbf{r_2}$ and a center-of-mass coordinate $\mathbf{R} = (1/2)(\mathbf{r_1} +
+\mathbf{r_2})$. With these new coordinates, the radial \se equation reads
+\begin{equation}
+  \left(
+  -\frac{\hbar^2}{m}
+  \dod[2]{}{r}
+  -\frac{\hbar^2}{4m}
+  \dod[2]{}{R}
+  + \frac{1}{4} k r^2
+  + k R^2
+  \right)
+  u(r, R)
+  =
+  E^{(2)} u(r, R)
+\end{equation}
+
+We can separate the equation via the ansatz for the wave function $u(r, R) =
+\psi(r)\phi(R)$ and the energy is given by the sum of the relative energy
+$E_r$ and the center-of-mass energy $E_R$: $E^{(2)} = E_r + E_R$.
+
+The repulsive Coulomb interaction between two electrons is given by
+\begin{equation}
+  V(\mathbf{r_1}, \mathbf{r_2}) =
+  \frac{\beta e^2}{\abs{\mathbf{r_1} - \mathbf{r_2}}} =
+  \frac{\beta e^2}{r},
+\end{equation}
+with $\beta e^2 = \SI{1.44}{e\volt\nano\meter}$.
+and after inserting this, the $r$-dependent \se{} equation reads
+\begin{equation}
+  \left(
+  -\frac{\hbar^2}{m}
+  \dod[2]{}{r}
+  + \frac{1}{4} k r^2
+  + \beta e^2 \frac{1}{r}
+  \right)
+  \psi(r)
+  =
+  E_r \psi(r)
+\end{equation}
+We introduce a dimensionless variable $\rho = r/\alpha$ and get
+\begin{equation*}
+  \begin{array}{rlrlrll}
+  - \frac{\hbar^2}{m\alpha^2}
+  \dod[2]{}{\rho} \psi(\rho)
+  &+& \frac{1}{4} k \alpha^2 \rho^2
+  \psi(\rho)
+  &+& \frac{\beta e^2}{\alpha\rho}
+  \psi(\rho)
+  &=&
+  E_r \psi(r)
+  \vspace{0.2cm}
+  \\
+  -
+  \dod[2]{}{\rho} \psi(\rho)
+  &+& \frac{mk\alpha^4}{4 \hbar^2} \rho^2
+  \psi(\rho)
+  &+& \frac{m\alpha\beta e^2}{\hbar^2}
+  \frac{1}{\rho}
+  \psi(\rho)
+  &=&
+  \frac{m \alpha^2}{\hbar^2}
+  E_r \psi(r)
+  \end{array}
+\end{equation*}
+We want to make this equation as similar to the equation in the previous
+section, and thus define a `frequency' $\omega_r$ such that
+$\omega_r^2 = \frac{mk\alpha^4}{4 \hbar^2}$, fix the constant $\alpha$ to
+$\frac{m\alpha\beta e^2}{\hbar^2} = 1$, and define $\lambda =
+\frac{m\alpha^2}{\hbar^2} E$. We've now reduced the \se{} equation to
+\begin{equation}
+  -
+  \dod[2]{}{\rho} \psi(\rho)
+  + \omega_r^2 \rho^2 \psi(\rho)
+  + \frac{1}{\rho} \psi(\rho)
+  =
+  \lambda \psi(\rho)
+\end{equation}
+
+This is equal to the equation for a single electron (\ref{eq:one}), just with a
+different potential, $V_i = \omega_r^2 \rho^2 + (1/\rho)$. Note that the
+constants are different between the two equations.
+
+\section{Numerical solution to \se's equation}
+
+In order to solve \se's equation which we've derived in the previous section
+we start with the standard expression for the second derivative
+\begin{equation}
+  u'' =
+  \frac
+    {u(\rho + h) - 2u(\rho) + u(\rho - h)}
+    {h^2}
+  + O(h^2)
+\end{equation}
+We define minimum and maximum values for $\rho$, $\rho_\text{min} = 0$ and
+$\rho_\text{max}$. Since we cannot set $\rho_\text{max} = \infty$ numerically
+we need to set $\rho_\text{max}$ large enough to observe the natural slope
+towards zero.
+
+With a given number of steps, $n_\text{step}$, we then define the step $h$ as
+\begin{equation}
+  h = \frac{\rho_\text{max} - \rho_\text{min}}{n_\text{step}}
+\end{equation}
+and can rewrite the \se{} equation as follows
+\begin{gather}
+  \rho_i = \rho_\text{min} + ih \hspace{1cm}
+  u_i = u(\rho_i) \\
+  -
+  \frac{u_{i+1} - 2u_i + u_{i-1}}{h^2}
+  + V_i u_i
+  =
+  \lambda u_i
+\end{gather}
+which can be simplified into a set of linear equations
+\begin{align}
+  d_i = \frac{2}{h^2} + V_i \hspace{1cm}
+  e_i = - \frac{1}{h^2} \\
+  d_i u_i + e_{i-1} u_{i-1} + e_{i+1} u_{i+1} = \lambda u_i
+\end{align}
+
+We can write the latter equation as a matrix eigenvalue problem
+\begin{equation}
+    \left( \begin{array}{ccccccc} d_1 & e_1 & 0   & 0    & \dots  &0     & 0 \\
+                                e_1 & d_2 & e_2 & 0    & \dots  &0     &0 \\
+                                0   & e_2 & d_3 & e_3  &0       &\dots & 0\\
+                                \dots  & \dots & \dots & \dots  &\dots      &\dots & \dots\\
+                                0   & \dots & \dots & \dots  &\dots       &d_{n_{\mathrm{step}}-2} & e_{n_{\mathrm{step}}-1}\\
+                                0   & \dots & \dots & \dots  &\dots       &e_{n_{\mathrm{step}}-1} & d_{n_{\mathrm{step}}-1}
+
+             \end{array} \right)      \left( \begin{array}{c} u_{1} \\
+                                                              u_{2} \\
+                                                              \dots\\ \dots\\ \dots\\
+                                                              u_{n_{\mathrm{step}}-1}
+             \end{array} \right)=\lambda \left( \begin{array}{c} u_{1} \\
+                                                              u_{2} \\
+                                                              \dots\\ \dots\\ \dots\\
+                                                              u_{n_{\mathrm{step}}-1}
+             \end{array} \right)
+      \label{eq:sematrix}
+\end{equation}
+
+\subsection{Jacobi's rotation algorithm}
+
+Our goal for solving the matrix eigenvalue problem is to use similarity
+transform to simplify it to a matrix with only elements on the diagonal. This
+diagonal matrix will have its eigenvalues as its diagonal. If $\mathbf{A}$ is
+real and symmetric there will exist a real orthogonal matrix $\mathbf{S}$ such
+that $\mathbf{S}^T \mathbf{A} \mathbf{S}$ is a diagonal matrix consisting of
+$\mathbf{A}$'s eigenvalues. Our strategy for finding this matrix $\mathbf{S}$
+is to perform a series of simpler rotation transformations:
+\begin{gather}
+  \mathbf{S_j} =
+  \begin{pmatrix}
+    \mathbf{I} &              & \\
+    & \cos \theta &  & \sin \theta \\
+    & & \mathbf{I} & \\
+    & -\sin \theta & & \cos \theta \\
+    &&&& \mathbf{I}
+  \end{pmatrix} \vspace{1cm} \\
+  \mathbf{S} = \mathbf{S_n} \dots \mathbf{S_2} \mathbf{S_1}
+\end{gather}
+
+For each iteration $\mathbf{S_i}$ it performs a plane rotation around an angle
+$\theta$ in the Euclidean $n$-dimensional space. The similarity transformation
+$\mathbf{B} = \mathbf{S_j}^T \mathbf{A} \mathbf{S_j}$ then results in
+\begin{align}
+  b_{ii} &= a_{ii}, i \neq k, i \neq l \\
+  b_{ik} &= a_{ik} \cos \theta - a_{il} \sin \theta, i \neq k, i \neq l
+  \label{eq:offdiag1}\\
+  b_{il} &= a_{il} \cos \theta - a_{ik} \sin \theta, i \neq k, i \neq l
+  \label{eq:offdiag2}\\
+  b_{kk} &= a_{kk} \cos^2 \theta - 2 a_{kl} \cos \theta \sin \theta +
+    a_{ll} \sin^2 \theta \\
+  b_{ll} &= a_{ll} \cos^2 \theta - 2 a_{lk} \cos \theta \sin \theta +
+    a_{kk} \sin^2(\theta) \\
+  b_{kl} &= (a_{kk} - a_{ll})\cos \theta \sin \theta + a_{kl}(\cos^2 \theta
+    - \sin^2 \theta)
+\end{align}
+We want to pick $k, l, \theta$ which minimizes the non-diagonal elements by
+demanding $b_{kl} = 0$. We introduce the short forms $s = \sin \theta$, $c =
+\cos\theta$, $t = \tan\theta$, and start by looking at how the elements at
+index $(kk, kl, lk, \text{and}~kk)$ transform
+\begin{equation}
+  \begin{pmatrix} b_{kk} & 0 \\ 0 & b_{ll} \end{pmatrix}
+  =
+  \begin{pmatrix} c & -s \\ s & c \end{pmatrix}
+  \begin{pmatrix} a_{kk} & a_{kl} \\ a_{lk} & a_{ll} \end{pmatrix}
+  \begin{pmatrix} c & s \\ -s & c \end{pmatrix}
+\end{equation}
+Our demand for $b_{kl} = 0$ thus implies
+\begin{equation}
+  \label{eq:rot-s}
+  a_{kl}(c^2 - s^2) + (a_{kk} - a_{ll})cs = b_{kl} = 0
+\end{equation}
+
+The Frobenius norm of an orthogonal transformation is always preserved. The
+Frobenius norm is defined as
+\begin{equation}
+  \Vert\mathbf{A}\Vert_F = \sqrt{\sum_{i=1}^n \sum_{j=1}^n|a_{ij}|^2}
+\end{equation}
+For our $2 \times 2$ case we have
+\begin{equation}
+  2a_{kl}^2 + a_{kk}^2 + a_{ll}^2 = b_{kk}^2 + b_{ll}^2
+\end{equation}
+We also know that $a_{ii} = b_{ii}$ for $i \neq k, i \neq l$, and thus the
+diagonal in $\mathbf{B}$ can be written
+\begin{align}
+  \sum_{i=1}^n b_{ii}
+  &=
+  \sum_{i=1}^n a_{ii} + (b_{kk}^2 + b_{ll}^2 - a_{kk}^2 - a_{ll}^2) \\
+  &=
+  \sum_{i=1}^n a_{ii} + 2_{kl}^2
+\end{align}
+This gives us the following expression for the off-diagonal elements
+\begin{align}
+  \text{off}(\mathbf{B})^2
+  &= \Vert\mathbf{B}\Vert_F^2 - \sum_{i=1}^n b_{ii}^2 \notag\\
+  &= \Vert\mathbf{A}\Vert_F^2 - \sum_{i=1}^n a_{ii} -2a_{kl}^2 \notag\\
+  &= \text{off}(\mathbf{A})^2 - 2a_{kl}^2
+\end{align}
+This proves that the off-diagonal norm will increase, and the matrix
+$\mathbf{A}$ moves closer to the diagonal form, for each iteration.
+
+In order to solve equation \vref{eq:rot-s} we see that
+\begin{align}
+  a_{kl}(c^2 - s^2) + (a_{kk} - a_{ll})cs = 0 \notag\\
+  a_{kl}\frac{c^2 - s^2}{cs} + (a_{kk} - a_{ll}) = 0 \notag\\
+  a_{kl}~2\cot(2\theta) + (a_{kk} - a_{ll}) = 0 \notag\\
+  \cot(2\theta) = \tau = \frac{a_{ll} - a_{kk}}{2a_{kl}}
+\end{align}
+and obtain the quadratic equation
+\begin{align}
+  t^2 + 2\tau t - 1 = 0 \\
+  t = -\tau \pm \sqrt{1+\tau^2}
+\end{align}
+resulting in
+\begin{align}
+  c &= \frac{1}{\sqrt{1 + t^2}} \\
+  s &= tc
+\end{align}
+
+The quadratic equation gave us two possible solutions for $t$, and thus also
+$\theta$, but it turns out that one of the solution will give us a lower
+off-diagonal than the other. There are three elements in the off-diagonal which
+are affected by the rotation transform: $b_{ik}, b_{il}, b_{kl}$. $b_{kl}$ is
+zero for this $\theta$, but $b_{ik}$ and $b_{il}$ will also change. Recall
+from earlier:
+\begin{align}
+  b_{ik} &= a_{ik} \cos \theta - a_{il} \sin \theta, i \neq k, i \neq l
+  \tag{\ref{eq:offdiag1}}\\
+  b_{il} &= a_{il} \cos \theta - a_{ik} \sin \theta, i \neq k, i \neq l
+  \tag{\ref{eq:offdiag2}}
+\end{align}
+From these equations it's clear that minimizing $\theta$ will also
+minimize the changes of the $b_{ik}$ and $b_{il}$. As more and more elements
+are being zeroed by the algorithm it's preferrable to minimize all changes
+done to different elements, otherwise the work done by one iteration will
+``undo'' the work done by a previous iteration. Due to this we should choose
+the \emph{lowest} value of $t$.
+
+\subsection{Eigenvectors}
+
+As we transform our matrix we will end up with different eigenvectors.  The
+eigenvectors to the completely diagonal matrix $\mathbf{B}$ is just
+$\mathbf{e_1}, \mathbf{e_2}, \dots$. We can easily see that $\mathbf{S}
+\mathbf{e_i}$ is the eigenvectors to $\mathbf{A}$.
+\begin{align*}
+  \mathbf{B} &= \mathbf{S}^T \mathbf{A} \mathbf{S} \\
+  \mathbf{B} \mathbf{e_i} &= \lambda_i \mathbf{e_i} \\
+  \mathbf{S}^T \mathbf{A} \mathbf{S} \mathbf{e_i} &= \lambda_i \mathbf{e_i} \\
+  \mathbf{A} \mathbf{S} \mathbf{e_i} &= \lambda_i \mathbf{S} \mathbf{e_i} \\
+\end{align*}
+As we're working iteratively it's easier to compute the transposed of the
+eigenvectors.
+\begin{align*}
+  \mathbf{u_i}
+  &=  \mathbf{S} \mathbf{e_i} \\
+  \mathbf{u_i}^T
+  &= \mathbf{e_i}^T \mathbf{S}^T \\
+  &= \mathbf{e_i}^T \mathbf{S_1}^T \mathbf{S_2}^T \dots \mathbf{S_n}^T
+\end{align*}
+We define a series of matrices $\mathbf{U_j}$ where $\mathbf{U_0} =
+\mathbf{I}$ and $\mathbf{U_j}$ represents the eigenvectors after $j$
+iterations
+\begin{align}
+  \mathbf{U_{j+1}} = \mathbf{U_j} \mathbf{S_j}^T
+\end{align}
+In our case, $\mathbf{S_j}$ is very close to the identity matrix and the actual
+changes between $\mathbf{U_j}$ and $\mathbf{U_{j+1}}$ are few:
+\begin{align}
+  U_{(j+1),ik} &=
+  \cos\theta\; U_{j,ik}
+  - \sin\theta\; U_{j,il}
+  \\
+  U_{(j+1),il} &=
+  \sin\theta\; U_{j,ik}
+  + \cos\theta\; U_{j,il}
+\end{align}
+
+\section{Results}
+
+Figure \ref{fig:n0}, \ref{fig:n1}, and \ref{fig:n2} shows the probability
+distribution for different $\omega_r$ for the three lowest states.
+
+\subsection{Value of $\rho_\text{max}$}
+
+Our boundary condition was theoretically $u(\infty) = 0$, but for the
+numerical solution we have to pick a large enough $\rho_\text{max}$. For the
+solution to be correct we need to see a natural slope towards zero at the end.
+As you can see in figure \ref{fig:n0}, the graph for $\omega_r = 0.01$ is
+being cut by our choice of $\rho_\text{max} = 7$. For this case we would need
+a larger $\rho_\text{max}$ to analyze the situation, but as we're only
+interested in comparing the curves themselves we choose a smaller
+$\rho_\text{max}$ which shows more details for the other values of
+$\omega_r$. 
+
+\subsection{Step length}
+
+After experimenting we found that $n_\text{step} = 280$ gave us the three
+lowest eigenvalues with four digit precision (see table \ref{tab:step}). We
+also tested how many iterations of the Jacobi rotation algorithm were required
+to find a diagonal matrix. This data is presented in table \ref{tab:prec}, and
+shows that the number of iterations required grows faster than linear compared
+to $n_\text{step}$.
+
+We also compared the performance of the Jacobi rotation algorithm with
+Armadillo's eigenvalue solver, which is based on Householder's algorithm (see
+table \ref{tab:perf}). While the Jacobi rotation algorithm is faster for
+$n_\text{step} = 10$ we see that its performance quickly degrades as
+$n_\text{step}$ increases.
+
+\begin{table}
+  \begin{tabular}{|r|r|}
+    \hline
+    Exact $\lambda$ & Numerically computed $\lambda$ \\
+    \hline
+    \input{prec.tex}
+    \hline
+  \end{tabular}
+  \caption{Numerically computed eigenvalues for the single electron case with
+  $n_\text{step} = 280$ and $\rho_\text{max} = 7$.}
+  \label{tab:step}
+\end{table}
+
+\begin{table}
+  \begin{tabular}{|r|r|}
+    \hline
+    $n_\text{step}$ & Iterations \\
+    \hline
+    \input{iter.tex}
+    \hline
+  \end{tabular}
+  \caption{Number of iterations required to diagonalize the matrix for the
+  single electron problem}
+  \label{tab:prec}
+\end{table}
+
+\begin{table}
+  \begin{tabular}{|r|rr|}
+    \hline
+    $n_\text{step}$ & Jacobi & Armadillo \\
+    \hline
+    \input{perf.tex}
+    \hline
+  \end{tabular}
+  \caption{Performance comparison between Jacobi's rotation algorithm and
+  Armadillo's eigenvalue solver}
+  \label{tab:perf}
+\end{table}
+
+\subsection{Plots}
+
+\begin{figure}
+  \centering \includegraphics[scale=0.8]{l0.png}
+  \caption{Probability distribution of the ground state ($n = 0$)}
+  \label{fig:n0}
+\end{figure}
+\begin{figure}
+  \centering \includegraphics[scale=0.8]{l1.png}
+  \caption{Probability distribution for the state $n = 1$}
+  \label{fig:n1}
+\end{figure}
+\begin{figure}
+  \centering \includegraphics[scale=0.8]{l2.png}
+  \caption{Probability distribution for the state $n = 2$}
+  \label{fig:n2}
+\end{figure}
+
+\end{document}
+
