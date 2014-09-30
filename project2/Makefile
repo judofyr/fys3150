@@ -4,9 +4,9 @@ CFLAGS = -O3 -std=c++11 -Wall -pedantic
 LDFLAGS = -larmadillo
 DEPS = src/jacobi.hh
 
-.PHONY: clean test all
+.PHONY: clean test all article
 
-all: build/schrodinger
+all: article
 
 build:
 	mkdir -p build
@@ -17,13 +17,28 @@ build/schrodinger: src/schrodinger.cc $(DEPS) | build
 build/tests: test/tests.cc $(DEPS) | build
 	$(CC) $(CFLAGS) $(LDFLAGS) $< -o $@
 
-build/wra.txt: build/schrodinger | build
-	$< 280 5 vec 0.01 > build/wra.txt
-	$< 280 5 vec    1 > build/wrb.txt
-	$< 280 5 vec    5 > build/wrc.txt
+build/iter.tex: tools/run.py build/schrodinger
+	$(PYTHON) $< num_iter > $@
+
+build/prec.tex: tools/run.py build/schrodinger
+	$(PYTHON) $< prec > $@
+
+build/perf.tex: tools/run.py build/schrodinger
+	$(PYTHON) $< perf > $@
+
+build/l1.png: tools/run.py build/schrodinger
+	$(PYTHON) $< plot_w_r
 
 plot: tools/plot.py build/wra.txt
 	$(PYTHON) $<
+
+build/article.pdf: article.tex build/iter.tex build/prec.tex build/perf.tex build/l1.png | build
+	sh build.sh
+
+build/params.tex: tools/fit.py build/schrodinger | build
+	$(PYTHON) $<
+
+article: build/article.pdf
 
 test: build/tests
 	./build/tests
